@@ -20,5 +20,5 @@ func InitializeConfig() *Config {
 		log.Fatal(err.Error())
 	}
 
-	return c
+	return &c
 }
