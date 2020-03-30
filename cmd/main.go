@@ -18,7 +18,10 @@ func main() {
 	defer baseLogger.Sync()
 	logger := baseLogger.Sugar()
 
-	c := config.InitializeConfig()
+	cfg := config.InitializeConfig()
+	logger.Infow("loaded config",
+		"config", cfg,
+	)
 
 	logger.Info("Payment Service is running! Hello world!")
 

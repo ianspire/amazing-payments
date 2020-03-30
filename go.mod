@@ -3,6 +3,7 @@ module github.com/ianspire/amazing-payments
 go 1.13
 
 require (
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/pretty v0.2.0 // indirect
 	github.com/kr/pty v1.1.8 // indirect
 	github.com/kr/text v0.2.0 // indirect
