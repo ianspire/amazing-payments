@@ -44,7 +44,7 @@ func main() {
 	// Build the service
 	s := pkg.NewServer(db, appLogger, sc)
 	server := grpc.NewServer()
-	paymentProto.RegisterPaymentServiceServer(server, s)
+	paymentProto.RegisterPaymentServiceServer(server, &s)
 
 	if err := pkg.StartRESTServer(cfg.JSONPort, cfg.RPCPort); err != nil {
 		appLogger.Fatalw("failed to start REST Server",
