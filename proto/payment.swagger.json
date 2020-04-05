@@ -15,22 +15,6 @@
     "application/json"
   ],
   "paths": {
-    "/payment/healthcheck": {
-      "get": {
-        "operationId": "HealthCheck",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/paymentHealthCheckResponse"
-            }
-          }
-        },
-        "tags": [
-          "PaymentService"
-        ]
-      }
-    },
     "/v1/customer": {
       "post": {
         "summary": "Customer Methods",
@@ -99,34 +83,19 @@
         "tags": [
           "PaymentService"
         ]
-      },
-      "post": {
-        "operationId": "UpdateCustomer",
+      }
+    },
+    "/v1/healthcheck": {
+      "get": {
+        "operationId": "HealthCheck",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/paymentCustomer"
+              "$ref": "#/definitions/paymentHealthCheckResponse"
             }
           }
         },
-        "parameters": [
-          {
-            "name": "customerID",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "int64"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/paymentUpdateCustomerRequest"
-            }
-          }
-        ],
         "tags": [
           "PaymentService"
         ]
@@ -176,27 +145,6 @@
         "isHealthy": {
           "type": "boolean",
           "format": "boolean"
-        }
-      }
-    },
-    "paymentUpdateCustomerRequest": {
-      "type": "object",
-      "properties": {
-        "customerID": {
-          "type": "string",
-          "format": "int64"
-        },
-        "name": {
-          "type": "string"
-        },
-        "email": {
-          "type": "string"
-        },
-        "stripe_customer_key": {
-          "type": "string"
-        },
-        "stripe_charge_date": {
-          "type": "string"
         }
       }
     }

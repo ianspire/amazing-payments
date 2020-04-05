@@ -19,16 +19,17 @@ service PaymentService {
 		};
 	}
 
-	rpc UpdateCustomer (UpdateCustomerRequest) returns (Customer) {
-		option (google.api.http) = {
-			post : "/v1/customer/{customerID}"
-			body : "*"
-		};
-	}
+	// temporarily eliminating this method for simplicity sake.
+	//	rpc UpdateCustomer (UpdateCustomerRequest) returns (Customer) {
+	//		option (google.api.http) = {
+	//			post : "/v1/customer/{customerID}"
+	//			body : "*"
+	//		};
+	//	}
 
 	rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse) {
 		option (google.api.http) = {
-			get : "/payment/healthcheck"
+			get : "/v1/healthcheck"
 		};
 	}
 }
@@ -40,6 +41,12 @@ message Customer {
 	string email = 3;
 	string stripe_customer_key = 4;
 	string stripe_charge_date = 5;
+}
+
+message CreateCustomerRequest {
+	string name = 1;
+	string email = 2;
+	string stripe_charge_date = 3;
 }
 
 message GetCustomerRequest {
@@ -55,13 +62,6 @@ message UpdateCustomerRequest {
 	string email = 3;
 	string stripe_customer_key = 4;
 	string stripe_charge_date = 5;
-}
-
-
-message CreateCustomerRequest {
-	string name = 1;
-	string email = 2;
-	string stripe_charge_date = 3;
 }
 
 message HealthCheckRequest {

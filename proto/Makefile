@@ -1,6 +1,6 @@
 INCLUDES := -I. -I/go/src
 
-all: build mocks
+all: build
 
 build:
 	docker build -t ianspire/proto .
@@ -22,10 +22,6 @@ proto-clean:
 
 swagger-clean:
 	rm -f *.swagger.json
-
-mocks:
-	go get github.com/vektra/mockery/
-	mockery -all -dir=. -output=./mocks
 
 mock-clean:
 	rm -rf ./mocks
