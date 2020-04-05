@@ -20,3 +20,5 @@
 # Omit local environment variable config files
 .envrc
 
+# exclude python cache from db
+/db/migrations/__pycache__
