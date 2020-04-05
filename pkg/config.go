@@ -7,14 +7,13 @@ import (
 )
 
 type Config struct {
-	ListenerPort int `envconfig:"API_PORT"`
 	DBHost     string `envconfig:"DB_HOST" default:"localhost"`
 	DBPort     int    `envconfig:"DB_PORT" default:"5432"`
 	DBUser     string `envconfig:"DB_USER" default:"postgres"`
 	DBName     string `envconfig:"DB_NAME" default:"amazing-payments"`
 	DBPassword string `envconfig:"DB_PASS" default:"postgres"`
-	JSONPort string `envconfig:"JSON_PORT" default:"8080"`
-	RPCPort string `envconfig:"RPC_PROT" default:"8081"`
+	JSONPort   string `envconfig:"JSON_PORT" default:":8080"`
+	RPCPort    string `envconfig:"RPC_PORT" default:":8081"`
 	StripeKey  string `envconfig:"STRIPE_KEY" required:"true"`
 }
 

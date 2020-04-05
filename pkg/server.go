@@ -2,55 +2,53 @@ package pkg
 
 import (
 	"context"
-	"fmt"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	paymentProto "github.com/ianspire/amazing-payments/proto"
+	"github.com/rs/cors"
 	"github.com/stripe/stripe-go/client"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 	"net/http"
 )
 
 type PaymentService struct {
+	Cfg          *Config
 	PGDB         *PGDB
 	Logger       *zap.SugaredLogger
 	StripeClient *client.API
 }
 
 // NewServer is a factory for creating a struct containing our critical service elements
-func NewServer(d *PGDB, l *zap.SugaredLogger, s *client.API) PaymentService {
+func NewPaymentService(logger *zap.SugaredLogger, cfg *Config) PaymentService {
+
+	// Initialize database connection
+	db, err := NewDB(cfg, logger)
+	FatalIfError(logger, err, "failed to connect to PGDB")
+
+	// Initialize Stripe client
+	sc, err := NewStripeClient(cfg)
+	FatalIfError(logger, err, "failed to validate Stripe client connection")
+
 	return PaymentService{
-		PGDB:         d,
-		Logger:       l,
-		StripeClient: s,
+		Cfg:          cfg,
+		PGDB:         db,
+		Logger:       logger,
+		StripeClient: sc,
 	}
 }
 
-// starts the REST Service handler
-func StartRESTServer(address, grpcAddress string) error {
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	mux := runtime.NewServeMux()
-
-	// Setup the client gRPC options
-	var opts []grpc.DialOption
-
-	// Register Payment Service Handler
-	err := paymentProto.RegisterPaymentServiceHandlerFromEndpoint(ctx, mux, grpcAddress, opts)
+func FatalIfError(appLogger *zap.SugaredLogger, err error, msg string) {
 	if err != nil {
-		return fmt.Errorf("could not register payment service: %s", err)
+		appLogger.Fatalw(msg,
+			"error", err.Error())
 	}
-	log.Printf("starting HTTP/1.1 REST server on %s", address)
-	http.ListenAndServe(address, mux)
-	return nil
 }
 
-// RunEndpoints starts the gRPC server endpoint - in case you'd like to make that available
-func RunEndpoints(ps *PaymentService, jsonPort string) error {
-	lis, err := net.Listen("tcp", jsonPort)
+func (ps *PaymentService) RunEndpoints() error {
+	ps.Logger.Infow("RunEndpoints Port",
+		"ps.Cfg.RPCPort", ps.Cfg.RPCPort)
+	lis, err := net.Listen("tcp", ps.Cfg.RPCPort)
 	if err != nil {
 		return err
 	}
@@ -59,5 +57,29 @@ func RunEndpoints(ps *PaymentService, jsonPort string) error {
 	paymentProto.RegisterPaymentServiceServer(server, ps)
 
 	go server.Serve(lis)
+	return nil
+}
+
+func (ps *PaymentService) RunGateway() error {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	mux := runtime.NewServeMux()
+	handler := cors.New(cors.Options{
+		AllowedHeaders: []string{"Authorization", "Content-Type", "Accept"},
+	}).Handler(mux)
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+
+	ps.Logger.Infow("RunGateway Port",
+		"ps.Cfg.RPCPort", ps.Cfg.RPCPort)
+	err := paymentProto.RegisterPaymentServiceHandlerFromEndpoint(ctx, mux, ps.Cfg.RPCPort, opts)
+	if err != nil {
+		return err
+	}
+
+	ps.Logger.Infow("RunEndpoints ListenAndServe Port",
+		"ps.Cfg.JSONPort", ps.Cfg.JSONPort)
+	http.ListenAndServe(ps.Cfg.JSONPort, handler)
 	return nil
 }
