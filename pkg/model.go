@@ -9,11 +9,12 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 	"go.uber.org/zap"
 )
 
 type PGDB struct {
-	pg       *sqlx.DB
+	pgx      *sqlx.DB
 	dbLogger *zap.SugaredLogger
 }
 
@@ -27,35 +28,35 @@ func NewDB(c *Config, appLogger *zap.SugaredLogger) (*PGDB, error) {
 		c.DBPassword,
 	)
 
-	sqlxPGConn, err := sqlx.Open("postgres", dbConnString)
+	sqlxPGConn, err := sqlx.Connect("postgres", dbConnString)
 	if err != nil {
 		log.Printf("dbConnString: %v", dbConnString)
 		log.Fatalf("failed to load PGDB connection: %s", err.Error())
 		return nil, err
 	}
 
-	return &PGDB{pg: sqlxPGConn, dbLogger: appLogger}, nil
+	return &PGDB{pgx: sqlxPGConn, dbLogger: appLogger}, nil
 }
 
 type CustomerRecord struct {
-	CustomerID int64    `db:"id"`
-	Name string `db:"name"`
-	Email string `db:"email"`
-	StripeCustomerKey string `db:"stripe_customer_key"`
-	StripeChargeDate string `db:"stripe_charge_date"`
-	Created    time.Time `db:"created_at"`
-	Modified   time.Time `db:"modified_at"`
+	CustomerID        int64     `db:"id"`
+	Name              string    `db:"name"`
+	Email             string    `db:"email"`
+	StripeCustomerKey string    `db:"stripe_customer_key"`
+	StripeChargeDate  string    `db:"stripe_charge_date"`
+	Created           time.Time `db:"created_at"`
+	Modified          time.Time `db:"modified_at"`
 }
 
 // HealthCheck verifies that the underlying datastore is working properly
 func (db *PGDB) HealthCheck() error {
-	return db.pg.Ping()
+	return db.pgx.Ping()
 }
 
 func (db *PGDB) InsertCustomer(ctx context.Context, name, email, stripeChargeDate, customerKey string) (
 	*CustomerRecord, error) {
 
-	var customer *CustomerRecord
+	var customer CustomerRecord
 
 	// columns inserted on record creation
 	customerColumns := []string{
@@ -66,22 +67,24 @@ func (db *PGDB) InsertCustomer(ctx context.Context, name, email, stripeChargeDat
 	}
 
 	// generating SQL statement structure
-	query := squirrel.Insert("customer.customer").
+	query, args, err := squirrel.Insert("customer.customer").
 		Columns(customerColumns...).
 		Values(name, email, customerKey, stripeChargeDate).
 		Suffix("RETURNING *").
-		PlaceholderFormat(squirrel.Dollar)
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
 
-	err := query.QueryRowContext(ctx).Scan(customer)
-	// Use prepared statement for input sanitization
+	err = db.pgx.QueryRowxContext(ctx, query, args...).StructScan(&customer)
 	if err != nil {
-		db.dbLogger.Errorw("failed to prepare SQL string",
+		db.dbLogger.Errorw("failed to scan row",
 			"columns", customerColumns,
+			"statement", query,
+			"error", err,
 		)
 		return nil, err
 	}
 
-	return customer, err
+	return &customer, err
 }
 
 //
@@ -97,24 +100,30 @@ func (db *PGDB) GetCustomer(ctx context.Context, customerID int64) (*CustomerRec
 		"id",
 		"name",
 		"email",
-		"stripe_customer_id",
+		"stripe_customer_key",
 		"stripe_charge_date",
 	}
 
-	selectSQL, _, err := squirrel.Select(selectColumns...).
+	selectSQL, args, err := squirrel.Select(selectColumns...).
 		From("customer.customer").
-		Where(squirrel.Eq{"id": customerID}).ToSql()
+		Where(squirrel.Eq{"id": customerID}).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
 	if err != nil {
 		db.dbLogger.Errorw("failed to create SQL string",
 			"id", customerID,
 		)
 	}
 
-	err = db.pg.SelectContext(ctx, &cr, selectSQL, customerID)
+	db.dbLogger.Infow("selectSQL",
+		"statement", selectSQL)
+
+	err = db.pgx.GetContext(ctx, &cr, selectSQL, args...)
 	if err != nil {
 		db.dbLogger.Errorw("failed to select customer",
 			"id", customerID,
-			)
+			"error", err,
+		)
 	}
 
 	return &cr, err
@@ -150,7 +159,7 @@ func (db *PGDB) UpdateCustomer(ctx context.Context, name, email, stripeChargeDat
 		return nil, err
 	}
 
-	err = db.pg.QueryRowContext(ctx, updateStmt).Scan(&cr)
+	err = db.pgx.QueryRowContext(ctx, updateStmt).Scan(&cr)
 	if err != nil {
 		db.dbLogger.Errorw("failed to update DB record",
 			"name", name,
