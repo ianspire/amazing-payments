@@ -11,8 +11,8 @@ import (
 func (ps *PaymentService) HealthCheck(ctx context.Context, req *paymentProto.HealthCheckRequest) (
 	*paymentProto.HealthCheckResponse, error) {
 	ps.Logger.Infow("healthcheck request",
-		"context", ctx,
-		"request", req,
+		"context", &ctx,
+		"request", &req,
 	)
 	var healthy bool
 	err := ps.PGDB.HealthCheck()
@@ -110,7 +110,7 @@ with Stripe.  Because we're under a time crunch, I'm going to eliminate this met
 //			"stripe_charge_date")
 //	}
 //
-//	cust, err := ps.PGDB.UpdateCustomer(ctx, &req.Name, &req.Email, &req.StripeChargeDate)
+//	cust, err := ps.pgdb.UpdateCustomer(ctx, &req.Name, &req.Email, &req.StripeChargeDate)
 //	if err != nil {
 //		return nil, status.Error(codes.Internal, "failed to update customer in DB")
 //	}

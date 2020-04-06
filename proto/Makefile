@@ -1,9 +1,9 @@
 INCLUDES := -I. -I/go/src
 
-all: build
+all: build mocks
 
 build:
-	docker build -t ianspire/proto .
+	docker build -t ianspire/amazing-payments/proto .
 	docker run --rm -v $(CURDIR):/go/src/github.com/ianspire/amazing-payments/proto -w /go/src/github.com/ianspire/amazing-payments/proto ianspire/proto clean generate
 
 clean: proto-clean mock-clean swagger-clean
@@ -23,6 +23,10 @@ proto-clean:
 swagger-clean:
 	rm -f *.swagger.json
 
+mocks:
+	GO111MODULE=on go get github.com/golang/mock/mockgen@latest
+	mkdir ./mocks
+	mockgen github.com/ianspire/amazing-payments/proto PaymentServiceClient,PaymentServiceServer > ./mocks/mockPayment.go
+
 mock-clean:
 	rm -rf ./mocks
-	

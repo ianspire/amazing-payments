@@ -24,7 +24,8 @@ type pgdb struct {
 	dbLogger *zap.SugaredLogger
 }
 
-func NewDB(c *Config, appLogger *zap.SugaredLogger) (Datastore, error) {
+// A Factory for creating a new Datastore, which takes in a config and logger
+func NewPGDB(c *Config, appLogger *zap.SugaredLogger) (Datastore, error) {
 	dbConnString := fmt.Sprintf(
 		"host=%s port=%v user=%s dbname=%s password=%s sslmode=disable",
 		c.DBHost,
@@ -44,6 +45,7 @@ func NewDB(c *Config, appLogger *zap.SugaredLogger) (Datastore, error) {
 	return &pgdb{pgx: sqlxPGConn, dbLogger: appLogger}, nil
 }
 
+// This struct should match the
 type CustomerRecord struct {
 	CustomerID        int64     `db:"id"`
 	Name              string    `db:"name"`
@@ -59,6 +61,7 @@ func (db *pgdb) HealthCheck() error {
 	return db.pgx.Ping()
 }
 
+// InsertCustomer adds Customer records to the customer.customer table
 func (db *pgdb) InsertCustomer(ctx context.Context, name, email, stripeChargeDate, customerKey string) (
 	*CustomerRecord, error) {
 
@@ -93,7 +96,7 @@ func (db *pgdb) InsertCustomer(ctx context.Context, name, email, stripeChargeDat
 	return &customer, err
 }
 
-//
+// GetCustomer Selects customer.customer records by the id field
 func (db *pgdb) GetCustomer(ctx context.Context, customerID int64) (*CustomerRecord, error) {
 
 	var cr CustomerRecord
