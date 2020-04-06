@@ -20,3 +20,8 @@
 # Omit local environment variable config files
 .envrc
 
+# exclude python cache from db
+/db/migrations/__pycache__
+
+# exclude vendor - we should be able to trust the versioning outlined in go.mod
+/vendor
