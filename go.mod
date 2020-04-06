@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/Masterminds/squirrel v1.2.0
+	github.com/golang/mock v1.4.3
 	github.com/golang/protobuf v1.3.3
 	github.com/google/go-cmp v0.4.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.14.3
@@ -14,7 +15,7 @@ require (
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/cors v1.7.0
-	github.com/stretchr/testify v1.5.1 // indirect
+	github.com/stretchr/testify v1.5.1
 	github.com/stripe/stripe-go v70.9.0+incompatible
 	go.uber.org/zap v1.14.1
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
