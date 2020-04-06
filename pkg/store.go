@@ -13,12 +13,18 @@ import (
 	"go.uber.org/zap"
 )
 
-type PGDB struct {
+type Datastore interface {
+	HealthCheck() error
+	InsertCustomer(ctx context.Context, name, email, stripeChargeDate, customerKey string) (*CustomerRecord, error)
+	GetCustomer(ctx context.Context, customerID int64) (*CustomerRecord, error)
+}
+
+type pgdb struct {
 	pgx      *sqlx.DB
 	dbLogger *zap.SugaredLogger
 }
 
-func NewDB(c *Config, appLogger *zap.SugaredLogger) (*PGDB, error) {
+func NewDB(c *Config, appLogger *zap.SugaredLogger) (Datastore, error) {
 	dbConnString := fmt.Sprintf(
 		"host=%s port=%v user=%s dbname=%s password=%s sslmode=disable",
 		c.DBHost,
@@ -31,11 +37,11 @@ func NewDB(c *Config, appLogger *zap.SugaredLogger) (*PGDB, error) {
 	sqlxPGConn, err := sqlx.Connect("postgres", dbConnString)
 	if err != nil {
 		log.Printf("dbConnString: %v", dbConnString)
-		log.Fatalf("failed to load PGDB connection: %s", err.Error())
+		log.Fatalf("failed to load pgdb connection: %s", err.Error())
 		return nil, err
 	}
 
-	return &PGDB{pgx: sqlxPGConn, dbLogger: appLogger}, nil
+	return &pgdb{pgx: sqlxPGConn, dbLogger: appLogger}, nil
 }
 
 type CustomerRecord struct {
@@ -49,11 +55,11 @@ type CustomerRecord struct {
 }
 
 // HealthCheck verifies that the underlying datastore is working properly
-func (db *PGDB) HealthCheck() error {
+func (db *pgdb) HealthCheck() error {
 	return db.pgx.Ping()
 }
 
-func (db *PGDB) InsertCustomer(ctx context.Context, name, email, stripeChargeDate, customerKey string) (
+func (db *pgdb) InsertCustomer(ctx context.Context, name, email, stripeChargeDate, customerKey string) (
 	*CustomerRecord, error) {
 
 	var customer CustomerRecord
@@ -88,7 +94,7 @@ func (db *PGDB) InsertCustomer(ctx context.Context, name, email, stripeChargeDat
 }
 
 //
-func (db *PGDB) GetCustomer(ctx context.Context, customerID int64) (*CustomerRecord, error) {
+func (db *pgdb) GetCustomer(ctx context.Context, customerID int64) (*CustomerRecord, error) {
 
 	var cr CustomerRecord
 
@@ -129,7 +135,7 @@ func (db *PGDB) GetCustomer(ctx context.Context, customerID int64) (*CustomerRec
 	return &cr, err
 }
 
-func (db *PGDB) UpdateCustomer(ctx context.Context, name, email, stripeChargeDate *string) (
+func (db *pgdb) UpdateCustomer(ctx context.Context, name, email, stripeChargeDate *string) (
 	*CustomerRecord, error) {
 
 	var cr CustomerRecord

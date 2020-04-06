@@ -15,6 +15,9 @@
 # The binary to build (just the basename).
 BIN := amazing-payments
 
+# Where to push the docker image.
+REGISTRY ?= ianspire
+
 # This version-strategy uses git tags to set the version string
 VERSION ?= $(shell git describe --tags --always --dirty)
 #
@@ -139,7 +142,7 @@ container: .container-$(DOTFILE_IMAGE) say_container_name
 	    -e 's|{ARG_FROM}|$(BASEIMAGE)|g' \
 	    Dockerfile.in > .dockerfile-$(OS)_$(ARCH)
 	@docker build -t $(IMAGE):$(TAG) -f .dockerfile-$(OS)_$(ARCH) .
-	@docker images -q $(IMAGE):$(TAG) > $@
+	@docker images $(IMAGE):$(TAG) > $@
 
 say_container_name:
 	@echo "container: $(IMAGE):$(TAG)"
