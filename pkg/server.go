@@ -14,7 +14,7 @@ import (
 
 type PaymentService struct {
 	Cfg          *Config
-	PGDB         *pgdb
+	PGDB         Datastore
 	Logger       *zap.SugaredLogger
 	StripeClient *client.API
 }
@@ -24,7 +24,7 @@ func NewPaymentService(logger *zap.SugaredLogger, cfg *Config) PaymentService {
 
 	// Initialize database connection
 	db, err := NewPGDB(cfg, logger)
-	FatalIfError(logger, err, "failed to connect to pgdb")
+	FatalIfError(logger, err, "failed to connect to PGDB")
 
 	// Initialize Stripe client
 	sc, err := NewStripeClient(cfg)

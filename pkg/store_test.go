@@ -1,7 +1,8 @@
 package pkg
 
-import "testing"
-
+import (
+	"testing"
+)
 
 func TestPgdb_InsertCustomer(t *testing.T) {
 
