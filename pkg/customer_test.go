@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"context"
+	"github.com/golang/mock/gomock"
 	paymentProto "github.com/ianspire/amazing-payments/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stripe/stripe-go/client"
@@ -40,35 +41,21 @@ func RandomString(length int) string {
 	return StringWithCharset(length, charset)
 }
 
-func setupDatastore() *MockDatastore {
+func setupDatastore(t *testing.T) *MockDatastore {
 	setLogger()
-	var pgdb *MockDatastore
-	var ctx context.Context
 
+	ctrl := gomock.NewController(t)
+	pgdb := NewMockDatastore(ctrl)
 	pgdb.EXPECT().
 		HealthCheck().
 		Return(nil)
-
-	var customerID int64
-	var name, email, stripeChargeDate, customerKey string
-	customerKey = RandomString(12)
-
-	pgdb.EXPECT().
-		InsertCustomer(ctx, name, email, stripeChargeDate, customerKey).
-		Do(func() int64 {customerID++; return customerID}).
-		Return(customerID, name, email, customerKey, stripeChargeDate)
-
-	pgdb.EXPECT().
-		GetCustomer(ctx, customerID).
-		Return(customerID, RandomString(12), RandomString(12), RandomString(12),
-			RandomString(12))
 
 	return pgdb
 }
 
 func TestPaymentService_HealthCheck(t *testing.T) {
 	ctx := context.Background()
-	pgdb := setupDatastore()
+	pgdb := setupDatastore(t)
 
 	s := PaymentService{
 		Cfg:          &Config{},
@@ -78,6 +65,6 @@ func TestPaymentService_HealthCheck(t *testing.T) {
 	}
 	req := paymentProto.HealthCheckRequest{}
 	resp, err := s.HealthCheck(ctx, &req)
-	assert.Nil(t, resp)
-	assert.Errorf(t, err, "healthcheck failed; expected no error")
+	assert.Nil(t, err)
+	assert.Equal(t, &paymentProto.HealthCheckResponse{IsHealthy: true}, resp)
 }
