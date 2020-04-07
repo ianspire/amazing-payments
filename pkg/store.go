@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/Masterminds/squirrel"
 	"log"
 	"time"
+
+	"github.com/Masterminds/squirrel"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"

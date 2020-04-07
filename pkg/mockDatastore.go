@@ -5,8 +5,9 @@ package pkg
 
 import (
 	context "context"
-	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+
+	gomock "github.com/golang/mock/gomock"
 )
 
 // MockDatastore is a mock of Datastore interface
