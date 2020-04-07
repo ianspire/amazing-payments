@@ -2,14 +2,15 @@ package pkg
 
 import (
 	"context"
+	"net"
+	"net/http"
+
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	paymentProto "github.com/ianspire/amazing-payments/proto"
 	"github.com/rs/cors"
 	"github.com/stripe/stripe-go/client"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"net"
-	"net/http"
 )
 
 type PaymentService struct {

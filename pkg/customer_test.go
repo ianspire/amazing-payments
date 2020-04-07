@@ -2,15 +2,16 @@ package pkg
 
 import (
 	"context"
+	"log"
+	"math/rand"
+	"testing"
+	"time"
+
 	"github.com/golang/mock/gomock"
 	paymentProto "github.com/ianspire/amazing-payments/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stripe/stripe-go/client"
 	"go.uber.org/zap"
-	"log"
-	"math/rand"
-	"testing"
-	"time"
 )
 
 var logger *zap.SugaredLogger
