@@ -19,7 +19,7 @@ type Datastore interface {
 	GetCustomer(ctx context.Context, customerID int64) (*CustomerRecord, error)
 }
 
-type pgdb struct {
+type PGDB struct {
 	pgx      *sqlx.DB
 	dbLogger *zap.SugaredLogger
 }
@@ -38,11 +38,11 @@ func NewPGDB(c *Config, appLogger *zap.SugaredLogger) (Datastore, error) {
 	sqlxPGConn, err := sqlx.Connect("postgres", dbConnString)
 	if err != nil {
 		log.Printf("dbConnString: %v", dbConnString)
-		log.Fatalf("failed to load pgdb connection: %s", err.Error())
+		log.Fatalf("failed to load PGDB connection: %s", err.Error())
 		return nil, err
 	}
 
-	return &pgdb{pgx: sqlxPGConn, dbLogger: appLogger}, nil
+	return &PGDB{pgx: sqlxPGConn, dbLogger: appLogger}, nil
 }
 
 // This struct should match the
@@ -57,12 +57,12 @@ type CustomerRecord struct {
 }
 
 // HealthCheck verifies that the underlying datastore is working properly
-func (db *pgdb) HealthCheck() error {
+func (db *PGDB) HealthCheck() error {
 	return db.pgx.Ping()
 }
 
 // InsertCustomer adds Customer records to the customer.customer table
-func (db *pgdb) InsertCustomer(ctx context.Context, name, email, stripeChargeDate, customerKey string) (
+func (db *PGDB) InsertCustomer(ctx context.Context, name, email, stripeChargeDate, customerKey string) (
 	*CustomerRecord, error) {
 
 	var customer CustomerRecord
@@ -97,7 +97,7 @@ func (db *pgdb) InsertCustomer(ctx context.Context, name, email, stripeChargeDat
 }
 
 // GetCustomer Selects customer.customer records by the id field
-func (db *pgdb) GetCustomer(ctx context.Context, customerID int64) (*CustomerRecord, error) {
+func (db *PGDB) GetCustomer(ctx context.Context, customerID int64) (*CustomerRecord, error) {
 
 	var cr CustomerRecord
 
@@ -138,7 +138,7 @@ func (db *pgdb) GetCustomer(ctx context.Context, customerID int64) (*CustomerRec
 	return &cr, err
 }
 
-func (db *pgdb) UpdateCustomer(ctx context.Context, name, email, stripeChargeDate *string) (
+func (db *PGDB) UpdateCustomer(ctx context.Context, name, email, stripeChargeDate *string) (
 	*CustomerRecord, error) {
 
 	var cr CustomerRecord

@@ -61,27 +61,54 @@ API documentation and tools for manual testing.
 Currently there are only three methods available, so we can provide information on them here:
 
 | `GET` | `/v1/healthcheck` | 
-Description: Pings the database, and returns true if the connection is still active
-Parameters: None
+
+Description:
+Pings the database, and returns true if the connection is still active
+
+Parameters:
+- None
+
 Response: 
+- success - boolean
 
 | `POST` | `/v1/customer` | 
+
 Description:
+Calls Stripe to register a new customer, and creates a corresponding customer record in our database
+
 Parameters:
+- string name = the customer name
+- string email = the customer email address
+
 Response:
+- int64 customerID = the customer identifier
+- string name = the customer name
+- string email = the customer email address
+- string stripe_customer_key = the Stripe customer identifier
+- string stripe_charge_date = the date pattern for which we want to charge the customer
 
 | `GET` | `/v1/customer/{customerID}` | 
-Description:
+
+Description: Retrieves a customer record from our database
+
 Parameters:
+- int64 customerID = the customer identifier
+
 Response:
+- int64 customerID = the customer identifier
+- string name = the customer name
+- string email = the customer email address
+- string stripe_customer_key = the Stripe customer identifier
+- string stripe_charge_date = the date pattern for which we want to charge the customer
 
 More methods are planned to fulfill the requirements of the project, as well:
+
 | `POST` | `/v1/product` |
 
 
 ## System Architecture
 
-<img src="https://imgur.com/a/F2SLJ5F" width="480">
+<img src="https://i.imgur.com/s4Eofkx.png" width="480" alt="missing :(">
 
 The intended architecture is to provision the payment service either in AWS EC2 instances that scale with an
 Auto-Scaling Group, or in a managed container orchestration tool such as ECS (Docker) or EKS (Kubernetes)

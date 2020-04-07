@@ -110,7 +110,7 @@ with Stripe.  Because we're under a time crunch, I'm going to eliminate this met
 //			"stripe_charge_date")
 //	}
 //
-//	cust, err := ps.pgdb.UpdateCustomer(ctx, &req.Name, &req.Email, &req.StripeChargeDate)
+//	cust, err := ps.PGDB.UpdateCustomer(ctx, &req.Name, &req.Email, &req.StripeChargeDate)
 //	if err != nil {
 //		return nil, status.Error(codes.Internal, "failed to update customer in DB")
 //	}
